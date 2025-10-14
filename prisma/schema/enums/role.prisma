@@ -1,0 +1,5 @@
+enum Role {
+  CLIENT
+  SERVICE_PROVIDER
+  ADMIN
+}
