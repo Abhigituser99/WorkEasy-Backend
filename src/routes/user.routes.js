@@ -22,24 +22,40 @@ function validateUser(req, res, next) {
 /* ---------------------------- GET /api/users ---------------------------- */
 r.get('/', async (req, res) => {
   try {
-    // optional query params: limit, skip
-    const limit = parseInt(req.query.limit) || 20;
-    const skip = parseInt(req.query.skip) || 0;
+   // 1) Parse pagination
+    const page  = Math.max(parseInt(req.query.page)  || 1, 1);
+    const limit = Math.min(Math.max(parseInt(req.query.limit) || 20, 1), 100);
+    const skip  = (page - 1) * limit;
 
-    const users = await prisma.user.findMany({
-      take: limit,
-      skip,
-      orderBy: { createdAt: 'desc' },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        role: true,
-        createdAt: true
-      }
-    });
+     const { name, email, country, role } = req.query;
 
-    res.json({ ok: true, count: users.length, users });
+     const where={}
+
+    if (name)    where.name    = { contains: String(name), mode: 'insensitive' };
+    if (email)   where.email   = { contains: String(email), mode: 'insensitive' };
+    if (country) where.country = { contains: String(country), mode: 'insensitive' };
+    if (role)    where.role    = String(role).toUpperCase(); // trust only enum values server-side if you validate
+
+   
+
+        const [items, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        take: limit,
+        skip,
+        orderBy: { createdAt: 'desc' },
+        //commented for now, as we are going to send all the fields
+        //select
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    console.log("abhishek - items:", items);
+
+
+
+     res.send('running')
+
   } catch (err) {
     console.error('❌ Error fetching users:', err);
     res.status(500).json({ ok: false, error: err.message });
