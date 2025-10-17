@@ -1,0 +1,7 @@
+// This model defines the structure for your countries table.
+model Country {
+  id    Int     @id @default(autoincrement())
+  name  String  @unique
+  code  String  @unique
+  users User[]
+}

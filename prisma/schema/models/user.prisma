@@ -4,7 +4,8 @@ model User {
   password       String
   name           String?
   role           Role     @default(CLIENT)
-  country        String? // new: optional country
+  countryId      Int?      // The user's country is optional
+  country        Country?  @relation(fields: [countryId], references: [id])
   age            Int? // new: optional age
   profilePicture String?
   createdAt      DateTime @default(now())

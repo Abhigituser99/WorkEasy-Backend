@@ -3,6 +3,8 @@ import { prisma } from '../db.js'; // keep this one to access DB
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { success } from 'zod';
+import validate from '../middlewares/validate.js';
+import { loginSchema } from '../validations/auth.vaildation.js';
 
 const {
   JWT_SECRET,
@@ -17,15 +19,10 @@ console.log('abhishek - BCRYPT_SALT_ROUNDS:', BCRYPT_SALT_ROUNDS);
 
 const r = Router();
 
-r.post('/login', async (req, res) => {
+r.post('/login',validate(loginSchema), async (req, res) => {
 
   try {
     const { email, password } = req.body;
-
-    //check if email and password is there
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email and password are required' });
-    }
 
     let user;
     try {
@@ -76,6 +73,14 @@ r.post('/login', async (req, res) => {
       });
     }
 
+    // 5️⃣ Return sanitized user + token
+    const { password: _pw, ...safeUser } = user;
+    res.json({
+      ok: true,
+      message: 'Login successful.',
+      user: safeUser,
+      accessToken: token,
+    });
     console.log("token:", token);
 
 
@@ -90,5 +95,14 @@ r.post('/login', async (req, res) => {
 
 
 })
+
+
+r.post("/signup", async (req, res) => {
+
+
+  
+}
+)
+
 
 export default r;
